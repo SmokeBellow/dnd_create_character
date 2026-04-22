@@ -2859,7 +2859,7 @@ const МастерСоздания = ({ onСоздать, onОтмена }) => {
     const снарВар=СНАРЯЖЕНИЕ_КЛАССОВ[данные.класс]?.[данные._снаряжение??0]||[];
     снарВар.forEach(п=>{const з=ОРУЖИЕ_КЛЮЧИ.find(к=>п.includes(к));c.снаряжение.push({имя:з?(выборыОружия[п]||п):п,кол:1,заметки:"",надет:false});});
     (СНАРЯЖЕНИЕ_ПРЕДЫСТОРИЙ[данные.предыстория]||[]).forEach(п=>c.снаряжение.push({имя:п,кол:1,заметки:"Предыстория",надет:false}));
-    c.заклинания={слоты:{},известные:[...(данные._заговоры||[]).map(н=>({имя:н,уровень:0,школа:"",время:"1 действие",дистанция:"18 м",заметки:"Заговор"})),...(данные._заклинания||[]).map(н=>({имя:н,уровень:1,школа:"",время:"1 действие",дистанция:"30 м",заметки:""}))]};
+    c.заклинания={слоты:{},известные:[...(данные._заговоры||[]).map(н=>({имя:н,уровень:0,школа:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.шк||"",время:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.вр||"1 действие",дистанция:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.д||"18 м",заметки:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.оп||"Заговор"})),...(данные._заклинания||[]).map(н=>({имя:н,уровень:1,школа:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.шк||"",время:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.вр||"1 действие",дистанция:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.д||"30 м",заметки:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.оп||""}))]};
     const хД={Варвар:12,Воин:10,Паладин:10,Следопыт:10,Бард:8,Жрец:8,Друид:8,Монах:8,Плут:8,Чародей:6,Колдун:8,Волшебник:6};
     const д=хД[данные.класс]||8, кМод=модификатор(мдр.ВЫН||10), ур=данные.уровень||1;
     // 1-й уровень: макс хит-дайс + мод КОН
@@ -3006,6 +3006,43 @@ const АткФорма = ({ onAdd }) => {
     </Panel>
   );
 };
+const ШКОЛЫ_МАГИИ = ["Воплощение","Некромантия","Иллюзия","Очарование","Прорицание","Преобразование","Ограждение","Вызов","Заклинание"];
+
+const ШколаИконка = ({ школа, размер = 36 }) => {
+  const к = {
+    "Воплощение":    { b:["#5a0e0e","#8b1a1a"], c:"#ff8c69",
+      p:"M18 6 L21 14 L28 14 L22 19 L25 27 L18 22 L11 27 L14 19 L8 14 L15 14 Z" },
+    "Некромантия":   { b:["#1a0a2e","#3d1a6e"], c:"#c084fc",
+      p:"M12 22 L12 16 C12 11 24 11 24 16 L24 22 L21 22 L21 24 L15 24 L15 22 Z M16 16 C16 16 16 18 16 18 M20 16 C20 16 20 18 20 18 M15 19 L21 19" },
+    "Иллюзия":       { b:["#0a1a3e","#0a2a6e"], c:"#93c5fd",
+      p:"M9 18 C12 12 24 12 27 18 C24 24 12 24 9 18 Z M18 14 C15 14 13 16 13 18 C13 20 15 22 18 22 C21 22 23 20 23 18 C23 16 21 14 18 14 Z M18 17 L18 19 M17 18 L19 18" },
+    "Очарование":    { b:["#3e0a1a","#6e1a3a"], c:"#f9a8d4",
+      p:"M18 26 C14 22 7 18 7 13 C7 9 10 7 13 7 C15 7 17 8 18 11 C19 8 21 7 23 7 C26 7 29 9 29 13 C29 18 22 22 18 26 Z" },
+    "Прорицание":    { b:["#052e3a","#0a4a6e"], c:"#7dd3fc",
+      p:"M18 8 C13 8 9 13 9 18 C9 23 13 28 18 28 C23 28 27 23 27 18 C27 13 23 8 18 8 Z M18 13 C15 13 13 15 13 18 C13 21 15 23 18 23 C21 23 23 21 23 18 C23 15 21 13 18 13 Z M18 17 L18 19 M17 18 L19 18" },
+    "Преобразование":{ b:["#3e2a0a","#6e4a0a"], c:"#fcd34d",
+      p:"M14 8 L14 14 L10 23 C10 26 12 28 15 28 L21 28 C24 28 26 26 26 23 L22 14 L22 8 M13 8 L23 8 M14 17 L22 17 M16 11 L20 11" },
+    "Ограждение":    { b:["#0a2a0a","#1a4a1a"], c:"#86efac",
+      p:"M18 8 L26 11 L26 20 C26 24 22 27 18 28 C14 27 10 24 10 20 L10 11 Z M15 18 L17 21 L22 15" },
+    "Вызов":         { b:["#0a2e1a","#0a4e2a"], c:"#6ee7b7",
+      p:"M18 8 C13 8 9 13 9 18 C9 23 13 28 18 28 C23 28 27 23 27 18 C27 13 23 8 18 8 Z M18 12 C15 12 12 15 12 18 C12 21 15 24 18 24 C21 24 24 21 24 18 C24 15 21 12 18 12 Z M18 16 C17 16 16 17 16 18 C16 19 17 20 18 20 C19 20 20 19 20 18 C20 17 19 16 18 16 Z" },
+    "Заклинание":    { b:["#0a2e1a","#0a4e2a"], c:"#6ee7b7",
+      p:"M18 8 C13 8 9 13 9 18 C9 23 13 28 18 28 C23 28 27 23 27 18 C27 13 23 8 18 8 Z M18 12 L18 24 M12 18 L24 18" },
+  };
+  const д = к[школа] || { b:["#1a1410","#332a1e"], c:"#c9a84c",
+    p:"M18 7 L20 14 L28 14 L22 19 L24 26 L18 22 L12 26 L14 19 L8 14 L16 14 Z" };
+  const gid = `sg-${(школа||"x").replace(/\s/g,"")}`;
+  return (
+    <svg width={размер} height={размер} viewBox="0 0 36 36" style={{flexShrink:0,borderRadius:6,display:"block"}}>
+      <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor={д.b[0]}/><stop offset="100%" stopColor={д.b[1]}/>
+      </linearGradient></defs>
+      <rect width="36" height="36" rx="6" fill={`url(#${gid})`}/>
+      <path d={д.p} fill="none" stroke={д.c} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+};
+
 const ЗаклФорма = ({ onAdd }) => {
   const [open,setOpen]=useState(false);
   const [f,setF]=useState({имя:"",уровень:0,школа:"",время:"1 действие",дистанция:"18 м",заметки:""});
@@ -3017,7 +3054,7 @@ const ЗаклФорма = ({ onAdd }) => {
         <select value={f.уровень} onChange={e=>setF(p=>({...p,уровень:parseInt(e.target.value)}))}>
           {[0,1,2,3,4,5,6,7,8,9].map(l=><option key={l} value={l}>{l===0?"Заговор":`${l}-й уровень`}</option>)}
         </select>
-        <input value={f.школа} onChange={e=>setF(p=>({...p,школа:e.target.value}))} placeholder="Школа магии"/>
+        <select value={f.школа} onChange={e=>setF(p=>({...p,школа:e.target.value}))}><option value="">— Школа —</option>{ШКОЛЫ_МАГИИ.map(s=><option key={s}>{s}</option>)}</select>
         <input value={f.время} onChange={e=>setF(p=>({...p,время:e.target.value}))} placeholder="Время накладывания"/>
         <input value={f.дистанция} onChange={e=>setF(p=>({...p,дистанция:e.target.value}))} placeholder="Дистанция"/>
         <input value={f.заметки} onChange={e=>setF(p=>({...p,заметки:e.target.value}))} placeholder="Заметки"/>
@@ -3204,7 +3241,14 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Известные заклинания</STitle>
               <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
-                {char.заклинания.известные.map((sp,i)=>{const цурон=sp.уровень===0?"#9b59b6":sp.уровень<=3?"#3498db":sp.уровень<=6?"#e67e22":"#e74c3c";return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"8px 12px"}}><div style={{width:28,height:28,borderRadius:"50%",background:цурон,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--font-title)",fontSize:12,color:"white",flexShrink:0}}>{sp.уровень===0?"З":sp.уровень}</div><div style={{flex:1}}><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--parchment)"}}>{sp.имя}</div><div style={{fontSize:11,color:"var(--parchment-dark)"}}>{[sp.школа,sp.время,sp.дистанция].filter(Boolean).join(" • ")}</div>{sp.заметки&&<div style={{fontSize:11,color:"var(--gold-dim)",fontStyle:"italic"}}>{sp.заметки}</div>}</div><DelBtn onClick={()=>upd({заклинания:{...char.заклинания,известные:char.заклинания.известные.filter((_,j)=>j!==i)}})}/></div>);})}
+                {char.заклинания.известные.map((sp,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"8px 12px"}}>
+  <div style={{position:"relative",flexShrink:0}}>
+    <ШколаИконка школа={sp.школа} размер={36}/>
+    <div style={{position:"absolute",bottom:1,right:1,background:"rgba(0,0,0,0.75)",borderRadius:3,fontSize:9,color:"white",fontFamily:"var(--font-title)",padding:"1px 3px",lineHeight:1.2}}>{sp.уровень===0?"З":sp.уровень}</div>
+  </div>
+  <div style={{flex:1,minWidth:0}}><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--parchment)"}}>{sp.имя}</div><div style={{fontSize:11,color:"var(--parchment-dark)"}}>{[sp.школа,sp.время,sp.дистанция].filter(Boolean).join(" • ")}</div>{sp.заметки&&<div style={{fontSize:11,color:"var(--gold-dim)",fontStyle:"italic"}}>{sp.заметки}</div>}</div>
+  <DelBtn onClick={()=>upd({заклинания:{...char.заклинания,известные:char.заклинания.известные.filter((_,j)=>j!==i)}})}/>
+</div>))}
               </div>
               <ЗаклФорма onAdd={sp=>upd({заклинания:{...char.заклинания,известные:[...char.заклинания.известные,sp]}})}/>
             </Panel>
