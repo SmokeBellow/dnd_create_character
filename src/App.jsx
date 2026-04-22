@@ -36,8 +36,10 @@ const GLOBAL_CSS = `
 
   /* ── Адаптив ─────────────────────────────────────── */
   @media(max-width:640px){
-    body{font-size:20px}
-    input,select,textarea{font-size:17px;padding:8px 11px}
+    body{font-size:16px;overflow-x:hidden}
+    *{word-break:break-word;overflow-wrap:break-word}
+    input,select,textarea{font-size:15px!important;padding:8px 10px!important}
+    button{white-space:normal}
     .resp-pad{padding:12px!important}
     .resp-hide{display:none!important}
     .resp-col1{grid-template-columns:1fr!important}
@@ -45,6 +47,15 @@ const GLOBAL_CSS = `
     .resp-nowrap{flex-wrap:nowrap!important;overflow-x:auto}
     .resp-fs-sm{font-size:11px!important}
     .resp-step-label{display:none!important}
+    .mob-container{padding-left:12px!important;padding-right:12px!important}
+    .mob-header{margin-left:-12px!important;margin-right:-12px!important;padding-left:12px!important;padding-right:12px!important}
+    .mob-header-row{flex-wrap:wrap!important;gap:8px!important}
+    .mob-tabs{flex-wrap:wrap!important;gap:4px!important}
+    .mob-tabs button{padding:4px 10px!important;font-size:10px!important}
+    .mob-2col{grid-template-columns:1fr 1fr!important}
+    .mob-col{flex-direction:column!important;align-items:stretch!important}
+    .mob-img{width:100%!important;max-width:180px!important;height:auto!important}
+    .mob-nowrap-fix{white-space:normal!important;text-overflow:clip!important}
   }
   @media(max-width:900px){
     .resp-pad-md{padding:16px 14px!important}
@@ -1341,7 +1352,7 @@ const ШагПодвидРасы = ({ данные, onChange }) => {
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:800,margin:"0 auto"}}>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(200px,100%),1fr))",gap:12}}>
         {подвиды.map(пв=>{
           const выбран = данные.подвидРасы===пв.id;
           const цвет = пв.цвет||цветРасы;
@@ -1830,7 +1841,7 @@ const ШагВладения = ({ данные, onChange }) => {
         <div style={{fontSize:14,color:"var(--parchment-dark)",marginBottom:12}}>
           <span style={{color:цвет,fontFamily:"var(--font-title)"}}>{данные.класс}</span> — выберите {инфоНав.кол} навыка владения из доступных.
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(185px,100%),1fr))",gap:8}}>
           {инфоНав.список.map(н=>{
             const навик = НАВЫКИ.find(x=>x.н===н);
             const выбран = выбрНав.includes(н);
@@ -1859,7 +1870,7 @@ const ШагВладения = ({ данные, onChange }) => {
       {боев && (
         <Panel style={{border:`1px solid ${цвет}25`}}>
           <STitle color={цвет}>Боевые владения</STitle>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10,marginTop:4}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(240px,100%),1fr))",gap:10,marginTop:4}}>
             {[["🛡 Доспехи", боев.доспехи],["⚔ Оружие", боев.оружие]].map(([метка,знач])=>(
               <div key={метка}>
                 <div style={{fontSize:12,fontFamily:"var(--font-title)",color:цвет,letterSpacing:"0.06em",marginBottom:4}}>{метка}</div>
@@ -1910,7 +1921,7 @@ const ШагВладения = ({ данные, onChange }) => {
               {выбИнстр.length}<span style={{fontSize:14,color:"var(--parchment-dark)"}}>/{вл.инстр_выб}</span>
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:7}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(210px,100%),1fr))",gap:7}}>
             {(вл.инстр_пул||СПИСОК_ИНСТРУМЕНТОВ).map(и=>(
               <Кнопка key={и} активна={выбИнстр.includes(и)} заблок={!выбИнстр.includes(и)&&выбИнстр.length>=вл.инстр_выб}
                 onClick={()=>toggleВыб("_инстр",выбИнстр,вл.инстр_выб,и)}>
@@ -1947,7 +1958,7 @@ const ШагВладения = ({ данные, onChange }) => {
                 {выбЯзыки.length}<span style={{fontSize:14,color:"var(--parchment-dark)"}}>/{всегоЯзыков}</span>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(165px,1fr))",gap:7}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(165px,100%),1fr))",gap:7}}>
               {СПИСОК_ЯЗЫКОВ.filter(я=>!ужеЯзыки.has(я)).map(я=>(
                 <Кнопка key={я} активна={выбЯзыки.includes(я)} заблок={!выбЯзыки.includes(я)&&выбЯзыки.length>=всегоЯзыков}
                   onClick={()=>toggleВыб("_языки",выбЯзыки,всегоЯзыков,я)}>
@@ -2153,7 +2164,7 @@ const ШагЗаклинания = ({ данные, onChange }) => {
   };
 
   const SpellGrid = ({список, выбраны, макс, ключ, icon}) => (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(155px,1fr))",gap:8}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(155px,100%),1fr))",gap:8}}>
       {список.map(з=>{
         const н = typeof з==="string"?з:з.н;
         const выбран = выбраны.includes(н);
@@ -2360,7 +2371,7 @@ const ШагОружие = ({ данные, onChange }) => {
         return (
           <div key={плейс}>
             <STitle color={цвет}>{плейс}</STitle>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:7,marginBottom:12}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(180px,100%),1fr))",gap:7,marginBottom:12}}>
               {список.map(о=>(
                 <div key={о} onClick={()=>обновитьВыбор(плейс,о)} style={{
                   border:`1px solid ${выбрано===о?цвет:"var(--stone-border)"}`,
@@ -2406,7 +2417,7 @@ const ШагИтог = ({ данные, onChange, onЛор }) => {
   const классД = КЛАССЫ_ДАННЫЕ.find(k=>k.имя===данные.класс);
   const снар = СНАРЯЖЕНИЕ_КЛАССОВ[данные.класс]?.[данные._снаряжение??0] || [];
   return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(280px,100%),1fr))",gap:16}}>
       {/* Шапка */}
       <Panel style={{border:`1px solid ${цвет}80`,boxShadow:`0 0 20px ${цвет}15`,gridColumn:"1/-1"}}>
         <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap"}}>
@@ -2507,7 +2518,7 @@ const ШагИтог = ({ данные, onChange, onЛор }) => {
       {((данные._заговоры||[]).length > 0 || (данные._заклинания||[]).length > 0) && (
         <Panel style={{gridColumn:"1/-1"}}>
           <STitle color={цвет}>Магия</STitle>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(220px,100%),1fr))",gap:12}}>
             {(данные._заговоры||[]).length>0&&(
               <div>
                 <div style={{fontSize:11,color:"var(--gold)",fontFamily:"var(--font-title)",letterSpacing:"0.08em",marginBottom:6}}>ЗАГОВОРЫ</div>
@@ -2620,7 +2631,7 @@ const ШагЛор = ({ данные, onChange }) => {
       </Panel>
 
       {/* ── Поля лора ── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(280px,100%),1fr))",gap:16}}>
         {ПОЛЯ_ЛОРА.map(({ключ,метка,icon,placeholder})=>{
           const заполн = !!(данные[ключ]||"").trim();
           return (
@@ -2886,9 +2897,9 @@ const МастерСоздания = ({ onСоздать, onОтмена }) => {
   const естьСледующий = шаг < шаги.length-1 && текущийШаг?.id !== "итог";
 
   return (
-    <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
+    <div className="mob-container" style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
       {/* Прогресс-бар */}
-      <div style={{borderBottom:"1px solid var(--stone-border)",background:"rgba(13,10,6,0.95)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:100,margin:"0 -10%",padding:"0 10%"}}>
+      <div className="mob-header" style={{borderBottom:"1px solid var(--stone-border)",background:"rgba(13,10,6,0.95)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:100,margin:"0 -10%",padding:"0 10%"}}>
         <div style={{padding:"10px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
             <Btn variant="ghost" size="md" onClick={onОтмена}>← Отмена</Btn>
@@ -3064,7 +3075,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
   const доступенПк = подкл && char.уровень >= подкл.уровень;
   const ВКЛАДКИ=[["статы","Статы"],["бой","Бой"],["навыки","Навыки"],["заклинания","Магия"],["снаряжение","Снаряжение"],["лор","Лор"]];
   return (
-    <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
+    <div className="mob-container" style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
       <div style={{borderBottom:"1px solid var(--stone-border)",background:"rgba(13,10,6,0.95)",backdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:100}}>
         <div style={{padding:"10px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
@@ -3081,7 +3092,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
               <Btn onClick={сохранить}>Сохранить</Btn>
             </div>
           </div>
-          <div style={{display:"flex",gap:2,marginTop:10,borderTop:"1px solid var(--stone-border)",paddingTop:9,overflowX:"auto",flexWrap:"wrap"}}>
+          <div className="mob-tabs" style={{display:"flex",gap:2,marginTop:10,borderTop:"1px solid var(--stone-border)",paddingTop:9,overflowX:"auto",flexWrap:"wrap"}}>
             {ВКЛАДКИ.map(([t,l])=>(
               <button key={t} onClick={()=>setTab(t)} style={{fontFamily:"var(--font-title)",fontSize:11,letterSpacing:"0.08em",padding:"5px 14px",background:tab===t?"var(--gold)":"transparent",color:tab===t?"var(--ink)":"var(--parchment-dark)",border:`1px solid ${tab===t?"var(--gold)":"transparent"}`,borderRadius:4,cursor:"pointer",transition:"all .2s",whiteSpace:"nowrap"}}>{l.toUpperCase()}</button>
             ))}
@@ -3090,7 +3101,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
       </div>
       <div style={{padding:"22px 0 40px"}}>
         {tab==="статы"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
               <STitle>Личность</STitle>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -3135,7 +3146,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         )}
         {tab==="бой"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
               <STitle>Боевые характеристики</STitle>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:16}}>
@@ -3168,10 +3179,10 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         )}
         {tab==="навыки"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Навыки</STitle>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:8}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(240px,100%),1fr))",gap:8}}>
                 {НАВЫКИ.map(нв=>{const проф=char.навыки[нв.н]||false;const итог=модификатор(char.характеристики[нв.х])+(проф?пб:0);return(<div key={нв.н} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 10px",background:"var(--ink)",borderRadius:5,border:`1px solid ${проф?"rgba(201,168,76,0.3)":"var(--stone-border)"}`}}><Chk checked={проф} onChange={()=>setChar(c=>({...c,навыки:{...c.навыки,[нв.н]:!c.навыки[нв.н]},обновленоВ:Date.now()}))} label={<span style={{fontSize:13}}>{нв.н} <span style={{fontSize:11,color:"var(--parchment-dark)"}}>({нв.х})</span></span>}/><div style={{fontFamily:"var(--font-title)",fontSize:15,color:проф?"var(--gold)":"var(--parchment)",minWidth:28,textAlign:"right"}}>{итог>=0?"+":""}{итог}</div></div>);})}
               </div>
             </Panel>
@@ -3182,7 +3193,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         )}
         {tab==="заклинания"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
               <STitle>Ячейки заклинаний</STitle>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(90px,1fr))",gap:10,marginBottom:14}}>
@@ -3200,7 +3211,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         )}
         {tab==="снаряжение"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
               <STitle>Монеты</STitle>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
@@ -3209,7 +3220,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             </Panel>
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Инвентарь</STitle>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:8,marginBottom:12}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(260px,100%),1fr))",gap:8,marginBottom:12}}>
                 {char.снаряжение.map((item,i)=>(<div key={i} style={{background:"var(--ink)",border:`1px solid ${item.надет?"rgba(201,168,76,0.4)":"var(--stone-border)"}`,borderRadius:6,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{flex:1}}><div style={{fontFamily:"var(--font-title)",fontSize:13,color:item.надет?"var(--gold)":"var(--parchment)"}}>{item.имя}{item.кол>1&&<span style={{color:"var(--gold)",fontSize:12}}> ×{item.кол}</span>}</div>{item.заметки&&<div style={{fontSize:11,color:"var(--parchment-dark)",fontStyle:"italic"}}>{item.заметки}</div>}</div><div style={{display:"flex",gap:8,alignItems:"center"}}><Chk checked={!!item.надет} onChange={()=>{const eq=[...char.снаряжение];eq[i]={...eq[i],надет:!eq[i].надет};upd({снаряжение:eq});}} label=""/><DelBtn onClick={()=>upd({снаряжение:char.снаряжение.filter((_,j)=>j!==i)})}/></div></div>))}
               </div>
               <ПредФорма onAdd={item=>upd({снаряжение:[...char.снаряжение,item]})}/>
@@ -3224,7 +3235,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         )}
         {tab==="лор"&&(
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:18}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
               <STitle>Черты характера</STitle>
               {[["ЧЕРТЫ ЛИЧНОСТИ","личность",3,"Опишите характер..."],["ИДЕАЛЫ","идеалы",2,"Принципы героя?"],["СВЯЗИ","связи",2,"Что связывает с миром?"],["СЛАБОСТИ","слабости",2,"Слабые стороны?"]].map(([lbl,key,rows,ph])=>(<div key={key} style={{marginBottom:14}}><label style={{fontSize:10,color:"var(--gold)",letterSpacing:"0.1em",fontFamily:"var(--font-title)",display:"block",marginBottom:4}}>{lbl}</label><textarea value={char[key]} onChange={e=>upd({[key]:e.target.value})} rows={rows} placeholder={ph} style={{resize:"vertical",lineHeight:1.5}}/></div>))}
@@ -3276,22 +3287,22 @@ const КарточкаПерс = ({ char, onSelect, onDelete }) => {
 };
 
 const Дашборд = ({ user, chars, onSelect, onCreate, onDelete, onLogout }) => (
-  <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
-    <div style={{borderBottom:"1px solid var(--stone-border)",background:"rgba(13,10,6,0.92)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:100,margin:"0 -10%",padding:"0 10%"}}>
+  <div className="mob-container" style={{minHeight:"100vh",background:"radial-gradient(ellipse at top,#1a1208 0%,#0d0a06 65%)",overflowY:"scroll",padding:"0 10%"}}>
+    <div className="mob-header" style={{borderBottom:"1px solid var(--stone-border)",background:"rgba(13,10,6,0.92)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:100,margin:"0 -10%",padding:"0 10%"}}>
       <div style={{padding:"13px 0",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:22}}>⚔</span><span style={{fontFamily:"var(--font-display)",fontSize:24,color:"var(--gold)",letterSpacing:"0.12em"}}>Зал Легенд</span></div>
         <div style={{display:"flex",alignItems:"center",gap:14}}><span style={{fontSize:13,color:"var(--parchment-dark)",fontStyle:"italic"}}>Привет, <span style={{color:"var(--gold)"}}>{user.username}</span></span><Btn variant="secondary" size="sm" onClick={onLogout}>Выйти</Btn></div>
       </div>
     </div>
     <div style={{padding:"40px 0"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:30}}>
-        <div><h2 style={{fontFamily:"var(--font-display)",fontSize:"clamp(28px,4vw,38px)",color:"var(--gold)",letterSpacing:"0.1em",marginBottom:4}}>Ваши Герои</h2><p style={{color:"var(--parchment-dark)",fontSize:14,fontStyle:"italic"}}>{chars.length} {склГероев(chars.length)} в зале</p></div>
-        <Btn onClick={onCreate} size="lg" style={{fontFamily:"var(--font-display)",letterSpacing:"0.08em"}}>Новый персонаж</Btn>
+      <div className="mob-header-row" style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:30}}>
+        <div><h2 style={{fontFamily:"var(--font-display)",fontSize:"clamp(24px,4vw,38px)",color:"var(--gold)",letterSpacing:"0.1em",marginBottom:4}}>Ваши Герои</h2><p style={{color:"var(--parchment-dark)",fontSize:14,fontStyle:"italic"}}>{chars.length} {склГероев(chars.length)} в зале</p></div>
+        <Btn onClick={onCreate} size="lg" style={{fontFamily:"var(--font-display)",letterSpacing:"0.08em",flexShrink:0}}>Новый персонаж</Btn>
       </div>
       {chars.length===0?(
         <div style={{textAlign:"center",padding:"80px 20px",color:"var(--parchment-dark)"}}><div style={{fontSize:52,marginBottom:16,opacity:.4}}>⚔</div><p style={{fontFamily:"var(--font-title)",fontSize:18,color:"var(--gold-dim)",marginBottom:8}}>Зал Героев пуст</p><p style={{fontSize:14}}>Создайте своего первого персонажа и начните легенду.</p></div>
       ):(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(300px,100%),1fr))",gap:16}}>
           {chars.map(c=><КарточкаПерс key={c.id} char={c} onSelect={onSelect} onDelete={onDelete}/>)}
         </div>
       )}
