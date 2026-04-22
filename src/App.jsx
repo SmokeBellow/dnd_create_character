@@ -2185,7 +2185,7 @@ const ШагЗаклинания = ({ данные, onChange }) => {
                 boxShadow:выбран?`0 0 10px ${цвет}18`:"none",
                 userSelect:"none",
               }}>
-              <div style={{fontSize:18,marginBottom:5}}>{icon}</div>
+              <div style={{marginBottom:5,display:"flex",justifyContent:"center"}}><ШколаИконка школа={desc?.шк} размер={40}/></div>
               <div style={{fontFamily:"var(--font-title)",fontSize:11,color:выбран?цвет:"var(--parchment)",letterSpacing:"0.03em",lineHeight:1.4}}>{н}</div>
               <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5,marginTop:5,minHeight:16}}>
                 {выбран && <div style={{fontSize:9,color:цвет}}>✓ выбрано</div>}
