@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "./supabase.js";
 
 // ─── Global CSS ───────────────────────────────────────────────────────────────
@@ -1635,10 +1636,69 @@ const ОПИСАНИЯ_УМЕНИЙ = {
 // ─── Умения подкласса с всплывающими подсказками ─────────────────────────────
 const УменияСПодсказками = ({ текст }) => {
   const [подсказка, setПодсказка] = useState(null);
+  const { isMobile } = useIsMobile();
+
   const элементы = текст.split(" · ").map(эл => {
     const m = эл.match(/^(.+?)\s+\(([^)]+)\)$/);
     return m ? { имя: m[1], ур: m[2] } : { имя: эл, ур: "" };
   });
+
+  // Попап рендерится через портал в document.body,
+  // чтобы избежать обрезания родительскими overflow/stacking context
+  const попап = подсказка && createPortal(
+    <div
+      onClick={() => setПодсказка(null)}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(0,0,0,0.65)",
+        display: "flex",
+        alignItems: isMobile ? "flex-end" : "center",
+        justifyContent: "center",
+        padding: isMobile ? "0 12px 28px" : "20px 16px",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#1c160e",
+          border: "1px solid rgba(201,168,76,0.6)",
+          borderRadius: isMobile ? "16px 16px 10px 10px" : 12,
+          padding: "20px 22px 24px",
+          maxWidth: 460,
+          width: "100%",
+          maxHeight: isMobile ? "70vh" : "80vh",
+          overflowY: "auto",
+          boxShadow: isMobile
+            ? "0 -8px 48px rgba(0,0,0,0.8)"
+            : "0 12px 56px rgba(0,0,0,0.85)",
+        }}
+      >
+        {/* Drag-handle на мобиле */}
+        {isMobile && (
+          <div style={{width:36,height:4,borderRadius:2,background:"rgba(201,168,76,0.3)",margin:"0 auto 16px"}}/>
+        )}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+          <div>
+            <div style={{fontFamily:"var(--font-title)",color:"var(--gold)",fontSize:17,letterSpacing:"0.04em"}}>{подсказка.имя}</div>
+            {подсказка.ур && (
+              <div style={{fontSize:11,color:"var(--parchment-mid)",opacity:0.6,marginTop:4}}>
+                Открывается: {подсказка.ур}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setПодсказка(null)}
+            style={{background:"none",border:"none",color:"rgba(201,168,76,0.5)",cursor:"pointer",fontSize:22,lineHeight:1,padding:"0 0 0 16px",flexShrink:0}}
+          >✕</button>
+        </div>
+        <div style={{fontSize:13,color:"var(--parchment-dark)",lineHeight:1.75}}>
+          {ОПИСАНИЯ_УМЕНИЙ[подсказка.имя]}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+
   return (
     <>
       <span>
@@ -1648,12 +1708,12 @@ const УменияСПодсказками = ({ текст }) => {
             <span key={i}>
               {i > 0 && <span style={{color:"rgba(201,168,76,0.35)"}}> · </span>}
               <span
-                onClick={есть ? () => setПодсказка(эл) : undefined}
+                onClick={есть ? (e) => { e.stopPropagation(); setПодсказка(эл); } : undefined}
                 style={{
                   cursor: есть ? "pointer" : "default",
                   color: есть ? "var(--gold)" : "inherit",
                   borderBottom: есть ? "1px dotted rgba(201,168,76,0.5)" : "none",
-                  transition:"opacity 0.15s",
+                  transition: "opacity 0.15s",
                 }}
               >{эл.имя}</span>
               {эл.ур && <span style={{fontSize:10,opacity:0.55}}> ({эл.ур})</span>}
@@ -1661,31 +1721,7 @@ const УменияСПодсказками = ({ текст }) => {
           );
         })}
       </span>
-      {подсказка && (
-        <div
-          onClick={() => setПодсказка(null)}
-          style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0 12px 28px"}}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{background:"#1c160e",border:"1px solid rgba(201,168,76,0.6)",borderRadius:"14px 14px 10px 10px",padding:"18px 20px 22px",maxWidth:430,width:"100%",boxShadow:"0 -6px 40px rgba(0,0,0,0.75)"}}
-          >
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-              <div>
-                <div style={{fontFamily:"var(--font-title)",color:"var(--gold)",fontSize:16,letterSpacing:"0.04em"}}>{подсказка.имя}</div>
-                {подсказка.ур && <div style={{fontSize:11,color:"var(--parchment-mid)",opacity:0.6,marginTop:3}}>Открывается: {подсказка.ур}</div>}
-              </div>
-              <button
-                onClick={() => setПодсказка(null)}
-                style={{background:"none",border:"none",color:"rgba(201,168,76,0.5)",cursor:"pointer",fontSize:20,lineHeight:1,padding:"0 0 0 16px",flexShrink:0}}
-              >✕</button>
-            </div>
-            <div style={{fontSize:13,color:"var(--parchment-dark)",lineHeight:1.7}}>
-              {ОПИСАНИЯ_УМЕНИЙ[подсказка.имя]}
-            </div>
-          </div>
-        </div>
-      )}
+      {попап}
     </>
   );
 };
