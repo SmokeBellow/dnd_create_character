@@ -63,6 +63,22 @@ const GLOBAL_CSS = `
     .resp-col1-md{grid-template-columns:1fr!important}
     .resp-col2-md{grid-template-columns:1fr 1fr!important}
   }
+  /* ── Лист персонажа: режим просмотра ── */
+  .sheet-readonly input,
+  .sheet-readonly select,
+  .sheet-readonly textarea{
+    pointer-events:none!important;
+    border-color:transparent!important;
+    background:transparent!important;
+    resize:none!important;
+    -webkit-appearance:none!important;
+    appearance:none!important;
+    cursor:default!important;
+    box-shadow:none!important;
+  }
+  .sheet-readonly input[type=number]::-webkit-inner-spin-button,
+  .sheet-readonly input[type=number]::-webkit-outer-spin-button{display:none!important}
+  .sheet-readonly .edit-only{display:none!important}
 `;
 
 const FontLoader = () => {
@@ -3772,6 +3788,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
   const [char,setChar]=useState(init);
   const [tab,setTab]=useState("статы");
   const [saved,setSaved]=useState(false);
+  const [editMode,setEditMode]=useState(false);
   const upd=useCallback((patch)=>setChar(c=>({...c,...patch,обновленоВ:Date.now()})),[]);
   const сохранить = async () => { await onSave(char); setSaved(true); setTimeout(()=>setSaved(false),2200); };
   const пб = бонусМастерства(char.уровень);
@@ -3794,7 +3811,12 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             </div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               {saved&&<span className="anim-saved" style={{fontSize:13,color:"#4a9e5c"}}>✓ Сохранено</span>}
-              <Btn onClick={сохранить}>Сохранить</Btn>
+              <button
+                onClick={()=>setEditMode(e=>!e)}
+                title={editMode?"Завершить редактирование":"Редактировать"}
+                style={{width:36,height:36,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,cursor:"pointer",border:`1px solid ${editMode?"var(--gold)":"var(--stone-border)"}`,background:editMode?"rgba(201,168,76,0.18)":"var(--stone)",color:editMode?"var(--gold)":"var(--parchment-dark)",transition:"all .2s",flexShrink:0}}
+              >✏️</button>
+              {editMode&&<Btn onClick={сохранить}>Сохранить</Btn>}
             </div>
           </div>
           <div className="mob-tabs" style={{display:"flex",gap:2,marginTop:10,borderTop:"1px solid var(--stone-border)",paddingTop:9,overflowX:"auto",flexWrap:"wrap"}}>
@@ -3804,7 +3826,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
           </div>
         </div>
       </div>
-      <div style={{padding:"22px 0 40px"}}>
+      <div style={{padding:"22px 0 40px"}} className={editMode?"":"sheet-readonly"}>
         {tab==="статы"&&(
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(290px,100%),1fr))",gap:18}}>
             <Panel>
@@ -3831,7 +3853,7 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
                     <div style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:8,padding:"8px 4px"}}>
                       <div style={{fontFamily:"var(--font-title)",fontSize:26,fontWeight:700,color:"var(--parchment)",lineHeight:1}}>{форматМод(char.характеристики[х])}</div>
                       <div style={{fontSize:11,color:"var(--parchment-dark)",margin:"2px 0"}}>{char.характеристики[х]}</div>
-                      <div style={{display:"flex",justifyContent:"center",gap:4,marginTop:5}}>
+                      <div className="edit-only" style={{display:"flex",justifyContent:"center",gap:4,marginTop:5}}>
                         {[["−",-1],["+"  ,1]].map(([lbl,d])=>(<button key={lbl} onClick={()=>setChar(c=>({...c,характеристики:{...c.характеристики,[х]:Math.max(1,Math.min(30,c.характеристики[х]+d))},обновленоВ:Date.now()}))} style={{width:20,height:20,borderRadius:3,background:"var(--stone-border)",border:"none",color:"var(--parchment)",cursor:"pointer",fontSize:14,lineHeight:1,fontFamily:"sans-serif"}}>{lbl}</button>))}
                       </div>
                     </div>
@@ -3864,22 +3886,22 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             <Panel>
               <STitle>Спасброски</STitle>
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
-                {ХАРАКТЕРИСТИКИ.map(х=>{const проф=char.спасброски[х];const итог=модификатор(char.характеристики[х])+(проф?пб:0);return(<div key={х} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}><Chk checked={проф} onChange={()=>setChar(c=>({...c,спасброски:{...c.спасброски,[х]:!c.спасброски[х]},обновленоВ:Date.now()}))} label={<span style={{fontSize:14}}>{ХАР_ПОЛНЫЕ[х]}</span>}/><div style={{fontFamily:"var(--font-title)",fontSize:16,color:проф?"var(--gold)":"var(--parchment)",minWidth:32,textAlign:"right"}}>{итог>=0?"+":""}{итог}</div></div>);})}
+                {ХАРАКТЕРИСТИКИ.map(х=>{const проф=char.спасброски[х];const итог=модификатор(char.характеристики[х])+(проф?пб:0);return(<div key={х} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}><Chk checked={проф} onChange={editMode?()=>setChar(c=>({...c,спасброски:{...c.спасброски,[х]:!c.спасброски[х]},обновленоВ:Date.now()})):undefined} label={<span style={{fontSize:14,cursor:editMode?"pointer":"default"}}>{ХАР_ПОЛНЫЕ[х]}</span>}/><div style={{fontFamily:"var(--font-title)",fontSize:16,color:проф?"var(--gold)":"var(--parchment)",minWidth:32,textAlign:"right"}}>{итог>=0?"+":""}{итог}</div></div>);})}
               </div>
             </Panel>
             <Panel>
               <STitle>Атаки</STitle>
               <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
-                {char.атаки.map((a,i)=>(<div key={i} style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--parchment)"}}>{a.имя}</div><div style={{fontSize:12,color:"var(--parchment-dark)"}}>{a.бонус>=0?"+":""}{a.бонус} атаки • {a.урон} {a.тип}</div>{a.заметки&&<div style={{fontSize:11,color:"var(--gold-dim)",fontStyle:"italic"}}>{a.заметки}</div>}</div><DelBtn onClick={()=>upd({атаки:char.атаки.filter((_,j)=>j!==i)})}/></div>))}
+                {char.атаки.map((a,i)=>(<div key={i} style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--parchment)"}}>{a.имя}</div><div style={{fontSize:12,color:"var(--parchment-dark)"}}>{a.бонус>=0?"+":""}{a.бонус} атаки • {a.урон} {a.тип}</div>{a.заметки&&<div style={{fontSize:11,color:"var(--gold-dim)",fontStyle:"italic"}}>{a.заметки}</div>}</div>{editMode&&<DelBtn onClick={()=>upd({атаки:char.атаки.filter((_,j)=>j!==i)})}/>}</div>))}
               </div>
-              <АткФорма onAdd={a=>upd({атаки:[...char.атаки,a]})}/>
+              {editMode&&<АткФорма onAdd={a=>upd({атаки:[...char.атаки,a]})}/>}
             </Panel>
             <Panel>
               <STitle>Спасброски при смерти</STitle>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:12}}>
-                {[["успехи","#4a9e5c"],["провалы","#c0392b"]].map(([тип,цвет])=>(<div key={тип}><div style={{fontSize:12,color:"var(--parchment-dark)",marginBottom:8}}>{тип==="успехи"?"Успехи":"Провалы"}</div><div style={{display:"flex",gap:8}}>{[1,2,3].map(n=>(<div key={n} onClick={()=>setChar(c=>({...c,спасСмерти:{...c.спасСмерти,[тип]:c.спасСмерти[тип]===n?n-1:n}}))} style={{width:30,height:30,borderRadius:"50%",border:`2px solid ${n<=char.спасСмерти[тип]?цвет:"var(--stone-border)"}`,background:n<=char.спасСмерти[тип]?цвет:"transparent",cursor:"pointer",transition:"all .2s"}}/>))}</div></div>))}
+                {[["успехи","#4a9e5c"],["провалы","#c0392b"]].map(([тип,цвет])=>(<div key={тип}><div style={{fontSize:12,color:"var(--parchment-dark)",marginBottom:8}}>{тип==="успехи"?"Успехи":"Провалы"}</div><div style={{display:"flex",gap:8}}>{[1,2,3].map(n=>(<div key={n} onClick={editMode?()=>setChar(c=>({...c,спасСмерти:{...c.спасСмерти,[тип]:c.спасСмерти[тип]===n?n-1:n}})):undefined} style={{width:30,height:30,borderRadius:"50%",border:`2px solid ${n<=char.спасСмерти[тип]?цвет:"var(--stone-border)"}`,background:n<=char.спасСмерти[тип]?цвет:"transparent",cursor:editMode?"pointer":"default",transition:"all .2s"}}/>))}</div></div>))}
               </div>
-              <Btn variant="secondary" size="sm" onClick={()=>upd({спасСмерти:{успехи:0,провалы:0}})}>Сбросить</Btn>
+              {editMode&&<Btn variant="secondary" size="sm" onClick={()=>upd({спасСмерти:{успехи:0,провалы:0}})}>Сбросить</Btn>}
             </Panel>
           </div>
         )}
@@ -3888,12 +3910,12 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Навыки</STitle>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(240px,100%),1fr))",gap:8}}>
-                {НАВЫКИ.map(нв=>{const проф=char.навыки[нв.н]||false;const итог=модификатор(char.характеристики[нв.х])+(проф?пб:0);return(<div key={нв.н} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 10px",background:"var(--ink)",borderRadius:5,border:`1px solid ${проф?"rgba(201,168,76,0.3)":"var(--stone-border)"}`}}><Chk checked={проф} onChange={()=>setChar(c=>({...c,навыки:{...c.навыки,[нв.н]:!c.навыки[нв.н]},обновленоВ:Date.now()}))} label={<span style={{fontSize:13}}>{нв.н} <span style={{fontSize:11,color:"var(--parchment-dark)"}}>({нв.х})</span></span>}/><div style={{fontFamily:"var(--font-title)",fontSize:15,color:проф?"var(--gold)":"var(--parchment)",minWidth:28,textAlign:"right"}}>{итог>=0?"+":""}{итог}</div></div>);})}
+                {НАВЫКИ.map(нв=>{const проф=char.навыки[нв.н]||false;const итог=модификатор(char.характеристики[нв.х])+(проф?пб:0);return(<div key={нв.н} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 10px",background:"var(--ink)",borderRadius:5,border:`1px solid ${проф?"rgba(201,168,76,0.3)":"var(--stone-border)"}`}}><Chk checked={проф} onChange={editMode?()=>setChar(c=>({...c,навыки:{...c.навыки,[нв.н]:!c.навыки[нв.н]},обновленоВ:Date.now()})):undefined} label={<span style={{fontSize:13,cursor:editMode?"pointer":"default"}}>{нв.н} <span style={{fontSize:11,color:"var(--parchment-dark)"}}>({нв.х})</span></span>}/><div style={{fontFamily:"var(--font-title)",fontSize:15,color:проф?"var(--gold)":"var(--parchment)",minWidth:28,textAlign:"right"}}>{итог>=0?"+":""}{итог}</div></div>);})}
               </div>
             </Panel>
             <Panel>
               <STitle>Владения и Языки</STitle>
-              {[["Броня","броня"],["Оружие","оружие"],["Инструменты","инструменты"],["Языки","языки"]].map(([lbl,key])=>(<div key={key} style={{marginBottom:14}}><div style={{fontSize:11,color:"var(--gold)",fontFamily:"var(--font-title)",letterSpacing:"0.08em",marginBottom:6}}>{lbl.toUpperCase()}</div><div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:6}}>{(char.владения[key]||[]).map((p,i)=>(<span key={i} style={{background:"var(--stone)",border:"1px solid var(--stone-border)",borderRadius:4,padding:"2px 8px",fontSize:12}}>{p}<button onClick={()=>upd({владения:{...char.владения,[key]:char.владения[key].filter((_,j)=>j!==i)}})} style={{background:"none",border:"none",color:"var(--stone-border)",cursor:"pointer",marginLeft:4,fontSize:10}} onMouseEnter={e=>e.currentTarget.style.color="var(--crimson)"} onMouseLeave={e=>e.currentTarget.style.color="var(--stone-border)"}>✕</button></span>))}</div><AddTag onAdd={v=>upd({владения:{...char.владения,[key]:[...(char.владения[key]||[]),v]}})} ph={`Добавить...`}/></div>))}
+              {[["Броня","броня"],["Оружие","оружие"],["Инструменты","инструменты"],["Языки","языки"]].map(([lbl,key])=>(<div key={key} style={{marginBottom:14}}><div style={{fontSize:11,color:"var(--gold)",fontFamily:"var(--font-title)",letterSpacing:"0.08em",marginBottom:6}}>{lbl.toUpperCase()}</div><div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:6}}>{(char.владения[key]||[]).map((p,i)=>(<span key={i} style={{background:"var(--stone)",border:"1px solid var(--stone-border)",borderRadius:4,padding:"2px 8px",fontSize:12}}>{p}{editMode&&<button onClick={()=>upd({владения:{...char.владения,[key]:char.владения[key].filter((_,j)=>j!==i)}})} style={{background:"none",border:"none",color:"var(--stone-border)",cursor:"pointer",marginLeft:4,fontSize:10}} onMouseEnter={e=>e.currentTarget.style.color="var(--crimson)"} onMouseLeave={e=>e.currentTarget.style.color="var(--stone-border)"}>✕</button>}</span>))}</div>{editMode&&<AddTag onAdd={v=>upd({владения:{...char.владения,[key]:[...(char.владения[key]||[]),v]}})} ph={`Добавить...`}/>}</div>))}
             </Panel>
           </div>
         )}
@@ -3915,10 +3937,10 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
     <div style={{position:"absolute",bottom:1,right:1,background:"rgba(0,0,0,0.75)",borderRadius:3,fontSize:9,color:"white",fontFamily:"var(--font-title)",padding:"1px 3px",lineHeight:1.2}}>{sp.уровень===0?"З":sp.уровень}</div>
   </div>
   <div style={{flex:1,minWidth:0}}><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--parchment)"}}>{sp.имя}</div><div style={{fontSize:11,color:"var(--parchment-dark)"}}>{[sp.школа,sp.время,sp.дистанция].filter(Boolean).join(" • ")}</div>{sp.заметки&&<div style={{fontSize:11,color:"var(--gold-dim)",fontStyle:"italic"}}>{sp.заметки}</div>}</div>
-  <DelBtn onClick={()=>upd({заклинания:{...char.заклинания,известные:char.заклинания.известные.filter((_,j)=>j!==i)}})}/>
+  {editMode&&<DelBtn onClick={()=>upd({заклинания:{...char.заклинания,известные:char.заклинания.известные.filter((_,j)=>j!==i)}}})/>}
 </div>))}
               </div>
-              <ЗаклФорма onAdd={sp=>upd({заклинания:{...char.заклинания,известные:[...char.заклинания.известные,sp]}})}/>
+              {editMode&&<ЗаклФорма onAdd={sp=>upd({заклинания:{...char.заклинания,известные:[...char.заклинания.известные,sp]}})}/>}
             </Panel>
           </div>
         )}
@@ -3933,16 +3955,16 @@ const ЛистПерсонажа = ({ char: init, onSave, onBack }) => {
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Инвентарь</STitle>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(260px,100%),1fr))",gap:8,marginBottom:12}}>
-                {char.снаряжение.map((item,i)=>(<div key={i} style={{background:"var(--ink)",border:`1px solid ${item.надет?"rgba(201,168,76,0.4)":"var(--stone-border)"}`,borderRadius:6,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{flex:1}}><div style={{fontFamily:"var(--font-title)",fontSize:13,color:item.надет?"var(--gold)":"var(--parchment)"}}>{item.имя}{item.кол>1&&<span style={{color:"var(--gold)",fontSize:12}}> ×{item.кол}</span>}</div>{item.заметки&&<div style={{fontSize:11,color:"var(--parchment-dark)",fontStyle:"italic"}}>{item.заметки}</div>}</div><div style={{display:"flex",gap:8,alignItems:"center"}}><Chk checked={!!item.надет} onChange={()=>{const eq=[...char.снаряжение];eq[i]={...eq[i],надет:!eq[i].надет};upd({снаряжение:eq});}} label=""/><DelBtn onClick={()=>upd({снаряжение:char.снаряжение.filter((_,j)=>j!==i)})}/></div></div>))}
+                {char.снаряжение.map((item,i)=>(<div key={i} style={{background:"var(--ink)",border:`1px solid ${item.надет?"rgba(201,168,76,0.4)":"var(--stone-border)"}`,borderRadius:6,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{flex:1}}><div style={{fontFamily:"var(--font-title)",fontSize:13,color:item.надет?"var(--gold)":"var(--parchment)"}}>{item.имя}{item.кол>1&&<span style={{color:"var(--gold)",fontSize:12}}> ×{item.кол}</span>}</div>{item.заметки&&<div style={{fontSize:11,color:"var(--parchment-dark)",fontStyle:"italic"}}>{item.заметки}</div>}</div><div style={{display:"flex",gap:8,alignItems:"center"}}><Chk checked={!!item.надет} onChange={()=>{const eq=[...char.снаряжение];eq[i]={...eq[i],надет:!eq[i].надет};upd({снаряжение:eq});}} label=""/>{editMode&&<DelBtn onClick={()=>upd({снаряжение:char.снаряжение.filter((_,j)=>j!==i)})}/>}</div></div>))}
               </div>
-              <ПредФорма onAdd={item=>upd({снаряжение:[...char.снаряжение,item]})}/>
+              {editMode&&<ПредФорма onAdd={item=>upd({снаряжение:[...char.снаряжение,item]})}/>}
             </Panel>
             <Panel style={{gridColumn:"1/-1"}}>
               <STitle>Умения и черты класса</STitle>
               <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
-                {char.умения.map((f,i)=>(<div key={i} style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"10px 14px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--gold)",marginBottom:4}}>{f.имя}</div><DelBtn onClick={()=>upd({умения:char.умения.filter((_,j)=>j!==i)})}/></div><div style={{fontSize:13,color:"var(--parchment-dark)",lineHeight:1.55}}>{f.описание}</div></div>))}
+                {char.умения.map((f,i)=>(<div key={i} style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"10px 14px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div style={{fontFamily:"var(--font-title)",fontSize:14,color:"var(--gold)",marginBottom:4}}>{f.имя}</div>{editMode&&<DelBtn onClick={()=>upd({умения:char.умения.filter((_,j)=>j!==i)})}/>}</div><div style={{fontSize:13,color:"var(--parchment-dark)",lineHeight:1.55}}>{f.описание}</div></div>))}
               </div>
-              <УмФорма onAdd={f=>upd({умения:[...char.умения,f]})}/>
+              {editMode&&<УмФорма onAdd={f=>upd({умения:[...char.умения,f]})}/>}
             </Panel>
           </div>
         )}
