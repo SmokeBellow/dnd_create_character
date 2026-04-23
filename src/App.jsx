@@ -2166,7 +2166,7 @@ const ШагХарактеристики = ({ данные, onChange }) => {
     <div>
       {/* Выбор метода */}
       <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
-        {[["стандарт","Стандартный набор"],["покупка","Покупка очков"],["броски","Броски кубиков"]].map(([м,н])=>(
+        {[["стандарт","Стандартный набор"],["покупка","Покупка очков"],["броски","Броски кубиков"],["ручная","✏️ Ручная"]].map(([м,н])=>(
           <button key={м} onClick={()=>{ setМетод(м); onChange({_метод:м}); }} style={{
             padding:"10px 18px",borderRadius:6,fontFamily:"var(--font-title)",fontSize:12,letterSpacing:"0.06em",cursor:"pointer",transition:"all .2s",
             background:метод===м?"var(--gold)":"var(--stone)",
@@ -2264,6 +2264,35 @@ const ШагХарактеристики = ({ данные, onChange }) => {
           {броски.some(b=>b!==null)&&(
             <ХарСетка хар={хар} цвет="var(--gold)" onClick={назначитьБросок} активен={выбранБросок!==null}/>
           )}
+        </Panel>
+      )}
+
+      {метод==="ручная"&&(
+        <Panel>
+          <STitle>Ручная настройка</STitle>
+          <div style={{fontSize:12,color:"var(--parchment-dark)",marginBottom:14,fontStyle:"italic"}}>
+            Любые значения от 1 до 30. Договорись с Мастером перед игрой.
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(130px,100%),1fr))",gap:10}}>
+            {ХАРАКТЕРИСТИКИ.map(х=>{
+              const в=хар[х]||10;
+              return (
+                <div key={х} style={{background:"var(--ink)",border:"1px solid var(--stone-border)",borderRadius:8,padding:"12px",textAlign:"center"}}>
+                  <div style={{fontSize:10,color:"var(--gold)",fontFamily:"var(--font-title)",letterSpacing:"0.1em",marginBottom:6}}>{ХАР_ПОЛНЫЕ[х].toUpperCase()}</div>
+                  <div style={{fontFamily:"var(--font-title)",fontSize:24,fontWeight:700,color:"var(--parchment)",lineHeight:1,marginBottom:8}}>{форматМод(в)}</div>
+                  <input
+                    type="number" min="1" max="30" value={в}
+                    onChange={e=>{const v=Math.max(1,Math.min(30,parseInt(e.target.value)||1));onChange({характеристики:{...хар,[х]:v},_метод:"ручная"});}}
+                    style={{width:"100%",background:"var(--stone)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"7px 4px",textAlign:"center",color:"var(--parchment)",fontFamily:"var(--font-title)",fontSize:18,boxSizing:"border-box",outline:"none"}}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:12}}>
+            <Btn size="sm" variant="secondary" onClick={()=>onChange({характеристики:{...Object.fromEntries(ХАРАКТЕРИСТИКИ.map(х=>[х,8])),...(РЕКОМЕНДУЕМЫЕ_СТАТЫ[данные.класс]||{})},_метод:"ручная"})}>Рекомендуемое</Btn>
+            <Btn size="sm" variant="danger" onClick={()=>onChange({характеристики:Object.fromEntries(ХАРАКТЕРИСТИКИ.map(х=>[х,10])),_метод:"ручная"})}>Сброс к 10</Btn>
+          </div>
         </Panel>
       )}
 
@@ -2567,46 +2596,114 @@ const ПредметТег = ({ имя, цвет, selected = false, activeId, on
 
 const ШагСнаряжение = ({ данные, onChange }) => {
   const варианты = СНАРЯЖЕНИЕ_КЛАССОВ[данные.класс] || [];
-  const выбран = данные._снаряжение; // null = ничего не выбрано
+  const выбран = данные._снаряжение;
   const цвет = ЦВЕТА_КЛАССОВ[данные.класс]||"var(--gold)";
   const снарПред = СНАРЯЖЕНИЕ_ПРЕДЫСТОРИЙ[данные.предыстория] || [];
   const [activeItem, setActiveItem] = useState(null);
   const toggleItem = (имя) => setActiveItem(prev => prev === имя ? null : имя);
 
+  const ручной = выбран === "ручная";
+  const [новыйПред, setНовыйПред] = useState("");
+  const ручнойСписок = данные._снаряжение_ручное || [];
+
+  const включитьРучной = () => onChange({_снаряжение:"ручная", _снаряжение_ручное:ручнойСписок});
+  const выключитьРучной = () => onChange({_снаряжение:null, _снаряжение_ручное:[]});
+  const добавитьПредмет = () => {
+    const имя = новыйПред.trim();
+    if(!имя) return;
+    onChange({_снаряжение_ручное:[...ручнойСписок, имя]});
+    setНовыйПред("");
+  };
+  const удалитьПредмет = (i) => onChange({_снаряжение_ручное:ручнойСписок.filter((_,j)=>j!==i)});
+
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}} onClick={()=>setActiveItem(null)}>
-      {/* Снаряжение класса */}
-      <div>
-        <Panel style={{marginBottom:12,border:`1px solid ${цвет}30`}}>
-          <div style={{fontSize:13,color:"var(--parchment-dark)"}}>
-            Выберите стартовый набор снаряжения для <span style={{color:цвет,fontFamily:"var(--font-title)"}}>{данные.класс}а</span>.
-          </div>
-        </Panel>
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {варианты.map((предметы,i)=>(
-            <div key={i} onClick={()=>onChange({_снаряжение:i})} style={{
-              border:`2px solid ${выбран===i?цвет:"var(--stone-border)"}`,
-              background:выбран===i?`${цвет}0a`:"var(--stone)",
-              borderRadius:10, padding:16, cursor:"pointer", transition:"all .2s",
-              boxShadow:выбран===i?`0 0 24px ${цвет}18`:"none",
-            }}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-                <div style={{width:30,height:30,borderRadius:5,background:выбран===i?цвет:"var(--stone-border)",display:"flex",alignItems:"center",justifyContent:"center",color:выбран===i?"var(--ink)":"var(--parchment)",fontFamily:"var(--font-title)",fontSize:13,fontWeight:700,flexShrink:0,transition:"all .2s"}}>
-                  {String.fromCharCode(65+i)}
-                </div>
-                <div style={{fontFamily:"var(--font-title)",fontSize:13,color:выбран===i?цвет:"var(--parchment)",letterSpacing:"0.06em"}}>Вариант {String.fromCharCode(65+i)}</div>
-                {выбран===i&&<div style={{marginLeft:"auto",color:цвет,fontSize:15}}>✓</div>}
-              </div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:6}} onClick={e=>e.stopPropagation()}>
-                {предметы.map((п,j)=>(
-                  <ПредметТег key={`${i}-${j}`} uid={`v${i}-${j}-${п}`} имя={п} цвет={цвет} selected={выбран===i} activeId={activeItem} onToggle={toggleItem}/>
-                ))}
-              </div>
-            </div>
-          ))}
-          {варианты.length===0&&<Panel><div style={{color:"var(--parchment-dark)",fontSize:14,textAlign:"center",padding:20}}>Для этого класса снаряжение задаётся вручную.</div></Panel>}
-        </div>
+      {/* Переключатель режима */}
+      <div style={{display:"flex",justifyContent:"flex-end"}}>
+        <button
+          onClick={e=>{e.stopPropagation();ручной?выключитьРучной():включитьРучной();}}
+          style={{padding:"8px 16px",borderRadius:6,fontFamily:"var(--font-title)",fontSize:11,letterSpacing:"0.06em",cursor:"pointer",transition:"all .2s",
+            background:ручной?"var(--gold)":"var(--stone)",
+            color:ручной?"var(--ink)":"var(--parchment)",
+            border:`1px solid ${ручной?"var(--gold)":"var(--stone-border)"}`,
+          }}
+        >✏️ {ручной?"Ручная настройка ✓":"Ручная настройка"}</button>
       </div>
+
+      {/* Ручной режим */}
+      {ручной ? (
+        <div>
+          <Panel style={{border:"1px solid rgba(201,168,76,0.35)",marginBottom:14}}>
+            <div style={{fontSize:13,color:"var(--parchment-dark)"}}>
+              Добавляй любые предметы вручную. Можно написать любое снаряжение — договорись с Мастером.
+            </div>
+          </Panel>
+
+          {/* Поле ввода нового предмета */}
+          <div style={{display:"flex",gap:8,marginBottom:14}} onClick={e=>e.stopPropagation()}>
+            <input
+              value={новыйПред}
+              onChange={e=>setНовыйПред(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&добавитьПредмет()}
+              placeholder="Название предмета…"
+              style={{flex:1,background:"var(--stone)",border:"1px solid var(--stone-border)",borderRadius:6,padding:"10px 14px",color:"var(--parchment)",fontSize:13,outline:"none",fontFamily:"inherit"}}
+            />
+            <button
+              onClick={добавитьПредмет}
+              style={{padding:"10px 18px",borderRadius:6,background:"var(--gold)",color:"var(--ink)",border:"none",cursor:"pointer",fontFamily:"var(--font-title)",fontSize:12,letterSpacing:"0.06em",whiteSpace:"nowrap"}}
+            >+ Добавить</button>
+          </div>
+
+          {/* Список добавленных предметов */}
+          {ручнойСписок.length > 0 ? (
+            <div style={{display:"flex",flexDirection:"column",gap:6}} onClick={e=>e.stopPropagation()}>
+              {ручнойСписок.map((п,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"var(--stone)",borderRadius:8,padding:"10px 14px",border:"1px solid var(--stone-border)"}}>
+                  <div style={{fontSize:13,color:"var(--parchment)",flex:1}}>{п}</div>
+                  <button onClick={()=>удалитьПредмет(i)} style={{background:"none",border:"none",color:"var(--crimson)",cursor:"pointer",fontSize:16,lineHeight:1,padding:"0 2px",opacity:0.7}}>×</button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{textAlign:"center",padding:"24px 0",color:"var(--parchment-dark)",fontSize:13,opacity:0.6}}>
+              Список пуст — добавь первый предмет выше
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Стандартный режим — выбор варианта */
+        <div>
+          <Panel style={{marginBottom:12,border:`1px solid ${цвет}30`}}>
+            <div style={{fontSize:13,color:"var(--parchment-dark)"}}>
+              Выберите стартовый набор снаряжения для <span style={{color:цвет,fontFamily:"var(--font-title)"}}>{данные.класс}а</span>.
+            </div>
+          </Panel>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {варианты.map((предметы,i)=>(
+              <div key={i} onClick={()=>onChange({_снаряжение:i})} style={{
+                border:`2px solid ${выбран===i?цвет:"var(--stone-border)"}`,
+                background:выбран===i?`${цвет}0a`:"var(--stone)",
+                borderRadius:10, padding:16, cursor:"pointer", transition:"all .2s",
+                boxShadow:выбран===i?`0 0 24px ${цвет}18`:"none",
+              }}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                  <div style={{width:30,height:30,borderRadius:5,background:выбран===i?цвет:"var(--stone-border)",display:"flex",alignItems:"center",justifyContent:"center",color:выбран===i?"var(--ink)":"var(--parchment)",fontFamily:"var(--font-title)",fontSize:13,fontWeight:700,flexShrink:0,transition:"all .2s"}}>
+                    {String.fromCharCode(65+i)}
+                  </div>
+                  <div style={{fontFamily:"var(--font-title)",fontSize:13,color:выбран===i?цвет:"var(--parchment)",letterSpacing:"0.06em"}}>Вариант {String.fromCharCode(65+i)}</div>
+                  {выбран===i&&<div style={{marginLeft:"auto",color:цвет,fontSize:15}}>✓</div>}
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}} onClick={e=>e.stopPropagation()}>
+                  {предметы.map((п,j)=>(
+                    <ПредметТег key={`${i}-${j}`} uid={`v${i}-${j}-${п}`} имя={п} цвет={цвет} selected={выбран===i} activeId={activeItem} onToggle={toggleItem}/>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {варианты.length===0&&<Panel><div style={{color:"var(--parchment-dark)",fontSize:14,textAlign:"center",padding:20}}>Для этого класса снаряжение задаётся вручную.</div></Panel>}
+          </div>
+        </div>
+      )}
 
       {/* Снаряжение предыстории */}
       {снарПред.length > 0 && (
@@ -3242,6 +3339,7 @@ const ВСЕ_ШАГИ = [
   {id:"лор",            заголовок:"Легенда",         сабтайтл:"Внешность, история, черты характера и убеждения"},
 ];
 const нужноОружие = (д) => {
+  if (д._снаряжение === "ручная") return false;
   const вар = СНАРЯЖЕНИЕ_КЛАССОВ[д.класс]?.[д._снаряжение ?? -1] ?? [];
   return вар.some(п=>ОРУЖИЕ_КЛЮЧИ.some(к=>п.includes(к)));
 };
@@ -3294,7 +3392,8 @@ const валидироватьШаг = (id, д) => {
       ошибки.push(`Выберите ${вл.инстр_выб} ${вл.инстр_выб===1?"инструмент":"инструмента"} — выбрано ${(д._инстр||[]).length}`);
   }
   if (id === "снаряжение") {
-    if (д._снаряжение === null || д._снаряжение === undefined) ошибки.push("Выберите вариант снаряжения");
+    if ((д._снаряжение === null || д._снаряжение === undefined) && д._снаряжение !== "ручная")
+      ошибки.push("Выберите вариант снаряжения или включите «Ручную настройку»");
   }
   if (id === "оружие") {
     const вар = СНАРЯЖЕНИЕ_КЛАССОВ[д.класс]?.[д._снаряжение ?? 0] || [];
@@ -3385,8 +3484,12 @@ const МастерСоздания = ({ onСоздать, onОтмена }) => {
       языки:   [...расаЯзД.фиксированные, ...(данные._языки||[])],
     };
     const выборыОружия=данные._оружие_выборы||{};
-    const снарВар=СНАРЯЖЕНИЕ_КЛАССОВ[данные.класс]?.[данные._снаряжение??0]||[];
-    снарВар.forEach(п=>{const з=ОРУЖИЕ_КЛЮЧИ.find(к=>п.includes(к));c.снаряжение.push({имя:з?(выборыОружия[п]||п):п,кол:1,заметки:"",надет:false});});
+    if (данные._снаряжение === "ручная") {
+      (данные._снаряжение_ручное||[]).forEach(п=>c.снаряжение.push({имя:п,кол:1,заметки:"",надет:false}));
+    } else {
+      const снарВар=СНАРЯЖЕНИЕ_КЛАССОВ[данные.класс]?.[данные._снаряжение??0]||[];
+      снарВар.forEach(п=>{const з=ОРУЖИЕ_КЛЮЧИ.find(к=>п.includes(к));c.снаряжение.push({имя:з?(выборыОружия[п]||п):п,кол:1,заметки:"",надет:false});});
+    }
     (СНАРЯЖЕНИЕ_ПРЕДЫСТОРИЙ[данные.предыстория]||[]).forEach(п=>c.снаряжение.push({имя:п,кол:1,заметки:"Предыстория",надет:false}));
     c.заклинания={слоты:{},известные:[...(данные._заговоры||[]).map(н=>({имя:н,уровень:0,школа:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.шк||"",время:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.вр||"1 действие",дистанция:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.д||"18 м",заметки:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.оп||"Заговор"})),...(данные._заклинания||[]).map(н=>({имя:н,уровень:1,школа:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.шк||"",время:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.вр||"1 действие",дистанция:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.д||"30 м",заметки:ОПИСАНИЯ_ЗАКЛИНАНИЙ[н]?.оп||""}))]};
     const хД={Варвар:12,Воин:10,Паладин:10,Следопыт:10,Бард:8,Жрец:8,Друид:8,Монах:8,Плут:8,Чародей:6,Колдун:8,Волшебник:6};
